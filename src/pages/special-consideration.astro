@@ -1,0 +1,57 @@
+---
+import { computeAvailability } from "../lib/availability";
+import { listConsiderationRequests } from "../lib/db";
+import Layout from "../layouts/Layout.astro";
+import { MENU_ITEMS } from "../lib/menu";
+
+const item = MENU_ITEMS.find((i) => i.slug === "special-consideration")!;
+const availability = computeAvailability(item, new Date());
+const requests = availability.available ? listConsiderationRequests() : [];
+---
+
+<Layout title={item.label}>
+  <h1>{item.label}</h1>
+  {
+    availability.available ? (
+      <>
+        <p>
+          Ask for consideration of your circumstances for a specific course.
+          Requests are stored here and appear in every open tab as soon as
+          they're submitted — open this page twice and submit one to see it.
+        </p>
+        <form method="post" action="/api/consideration-requests">
+          <label for="courseCode">Course code</label>
+          <input id="courseCode" name="courseCode" required maxlength="20" placeholder="COMP4020" />
+          <label for="reason">Reason</label>
+          <input id="reason" name="reason" required maxlength="500" />
+          <button>Submit request</button>
+        </form>
+        <ul id="requests">
+          {requests.map((request) => (
+            <li>
+              <strong>{request.courseCode}</strong>: {request.reason}
+            </li>
+          ))}
+        </ul>
+        <script>
+          const list = document.querySelector("#requests");
+          const source = new EventSource("/api/events");
+          source.addEventListener("message", (event) => {
+            const request = JSON.parse(event.data);
+            const li = document.createElement("li");
+            const strong = document.createElement("strong");
+            strong.textContent = request.courseCode;
+            li.append(strong, `: ${request.reason}`);
+            list?.prepend(li);
+          });
+        </script>
+      </>
+    ) : (
+      <p>
+        {availability.nextOpenText
+          ? `This menu isn't open yet. Available from ${availability.nextOpenText}.`
+          : "This menu isn't open right now, and there's no known reopening date."}
+      </p>
+    )
+  }
+</Layout>

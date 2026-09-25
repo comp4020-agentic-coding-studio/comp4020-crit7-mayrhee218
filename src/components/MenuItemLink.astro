@@ -1,0 +1,29 @@
+---
+import { computeAvailability } from "../lib/availability";
+import type { MenuItem } from "../lib/menu";
+
+interface Props {
+  item: MenuItem;
+}
+
+const { item } = Astro.props;
+const availability = computeAvailability(item, new Date());
+const hintId = `${item.slug}-hint`;
+---
+
+{
+  availability.available ? (
+    <a class="menu-item" href={item.href}>
+      {item.label}
+    </a>
+  ) : (
+    <span class="menu-item-wrap">
+      <button type="button" class="menu-item" disabled aria-describedby={hintId}>
+        {item.label}
+      </button>
+      <span id={hintId} class="menu-item-hint">
+        {availability.nextOpenText ? `Available from ${availability.nextOpenText}` : "Currently unavailable"}
+      </span>
+    </span>
+  )
+}

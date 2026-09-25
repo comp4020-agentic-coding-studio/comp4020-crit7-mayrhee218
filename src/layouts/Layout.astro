@@ -1,0 +1,30 @@
+---
+import MenuItemLink from "../components/MenuItemLink.astro";
+import { MENU_ITEMS } from "../lib/menu";
+import "../styles.css";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <nav aria-label="site">
+      <a href="/">ANUHub</a>
+      {MENU_ITEMS.map((item) => <MenuItemLink item={item} />)}
+      <a href="/readme/">About</a>
+    </nav>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

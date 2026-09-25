@@ -4,7 +4,7 @@ import Database from "better-sqlite3";
 import { desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { type Message, messages } from "./schema";
+import { type ConsiderationRequest, considerationRequests } from "./schema";
 
 // One SQLite file is the app's whole persistent state. In production
 // fly.toml points DATABASE_PATH at the machine's volume (/data), which is
@@ -24,12 +24,17 @@ export const db = drizzle(client);
 // commit the migration it writes to drizzle/.
 migrate(db, { migrationsFolder: "./drizzle" });
 
-export type { Message };
+export type { ConsiderationRequest };
 
-export function listMessages(): Message[] {
-  return db.select().from(messages).orderBy(desc(messages.id)).limit(50).all();
+export function listConsiderationRequests(): ConsiderationRequest[] {
+  return db
+    .select()
+    .from(considerationRequests)
+    .orderBy(desc(considerationRequests.id))
+    .limit(50)
+    .all();
 }
 
-export function addMessage(body: string): Message {
-  return db.insert(messages).values({ body }).returning().get();
+export function addConsiderationRequest(courseCode: string, reason: string): ConsiderationRequest {
+  return db.insert(considerationRequests).values({ courseCode, reason }).returning().get();
 }

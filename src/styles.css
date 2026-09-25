@@ -15,6 +15,34 @@ a {
   color: #0b5fff;
 }
 
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.menu-item-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.menu-item[disabled] {
+  color: #6b6b6b;
+  background: #eee;
+  border: 1px solid #ccc;
+  cursor: not-allowed;
+  font: inherit;
+  padding: 0;
+}
+
+.menu-item-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: #555;
+}
+
 form {
   display: flex;
   flex-wrap: wrap;

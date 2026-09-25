@@ -1,0 +1,23 @@
+---
+import { computeAvailability } from "../lib/availability";
+import Layout from "../layouts/Layout.astro";
+import { MENU_ITEMS } from "../lib/menu";
+
+const item = MENU_ITEMS.find((i) => i.slug === "leave-of-absence")!;
+const availability = computeAvailability(item, new Date());
+---
+
+<Layout title={item.label}>
+  <h1>{item.label}</h1>
+  {
+    availability.available ? (
+      <p>Apply for a leave of absence from your program here.</p>
+    ) : (
+      <p>
+        {availability.nextOpenText
+          ? `This menu isn't open yet. Available from ${availability.nextOpenText}.`
+          : "This menu isn't open right now, and there's no known reopening date."}
+      </p>
+    )
+  }
+</Layout>
