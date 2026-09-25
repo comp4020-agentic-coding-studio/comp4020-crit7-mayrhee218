@@ -1,54 +1,56 @@
 # Process overview
 
-<!-- TEMPLATE: this file is a shape to fill in, not a form. Replace everything
-     in it with your own overview, and delete this comment — `pnpm
-     check:evidence` will remind you if it's still here. -->
-
-Written by you, for a reader: how you got from the brief to the harness and
-agentic workflow behind this submission. Markers read this file and follow its
-citations; they don't trawl the repo for evidence you didn't point at.
-
-This file is the shape; the course site's
-[assessment page](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/assessment/#what-you-submit)
-is the requirement, and its
-[word counts](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/assessment/#word-counts)
-cover every deliverable.
-
 ## What I built
 
-A sentence or two. `README.md` is where the account of what the app is and what
-good means here lives; this file is how you got there.
+ANUHub, a small original prototype of ANU's student administration portal,
+built around one pain point: several of its real menus are only open during
+specific windows, and there's no way to tell when a closed one reopens.
+`README.md` has the full account of what the app is and what good looks like
+here; this is how I got there.
 
 ## How I got here
 
-The account of the process: how the work actually went, and how you knew the
-result was right. Tell it in whatever order makes it clear. A weekly prototype
-needs a paragraph or two; an assignment needs more.
+I gave the agent (Claude Code) the feature request directly — make
+unavailable menu items visibly disabled, unclickable, and show their exact
+next-open date/time, driven by one source of availability data instead of
+hardcoded dates, and cover the edge cases named in the brief: a menu opening
+today, a menu with no known reopening date, and timezone/date-boundary
+correctness:
 
-Cite the record as you go, as links whose text is the commit hash or range and
-whose target is this repo's commit or compare URL, so a reader clicks straight
-to the evidence:
+> I want to improve ANUHub [...] by making unavailable menu items more
+> transparent to students [...] identify menus currently outside their
+> opening period, style them as clearly disabled [...] display the exact next
+> opening date/time [...] reusing a single source of availability data rather
+> than hardcoding dates [...] test edge cases such as a menu opening today, a
+> menu that has no known reopening date, and timezone/date-boundary issues.
 
-- one commit: [`a1b2c3d`](https://github.com/YOUR-ORG/YOUR-REPO/commit/a1b2c3d)
-- a range:
-  [`a1b2c3d...e4f5a6b`](https://github.com/YOUR-ORG/YOUR-REPO/compare/a1b2c3d...e4f5a6b)
+Since there's no real ANUHub codebase in this repo, the agent first said so
+explicitly and proposed treating this as an original prototype borrowing the
+real pain point, rather than inventing a fake upstream to "improve." I agreed
+with that framing before anything was built. It then read the starter's own
+conventions (routing, the Drizzle/SQLite data layer, the SSE broadcast
+pattern, the CI checks that curl `/api/events` by literal path) and put a
+full plan in front of me before writing code — data model, the timezone
+approach, every file it intended to touch — rather than starting to edit.
 
-To pair a prompt with the commit it produced, quote the prompt (curated, not a
-full transcript) next to the citation:
+The design decision I pushed back least on and am most glad I didn't: instead
+of storing opening/closing dates as UTC instants and converting, the agent
+compares Sydney-local wall-clock strings directly (`"YYYY-MM-DDTHH:MM"`),
+sidestepping the AEST/AEDT DST switch entirely rather than getting the
+arithmetic almost right. `spec/availability.test.ts` asserts the exact
+instant either side of a Sydney midnight that isn't UTC midnight, which is
+the test that would have caught the bug the naive approach invites.
 
-> the prompt, verbatim
+Implementation hit one real snag: `drizzle-kit generate` needs an interactive
+terminal to resolve an ambiguous schema diff (rename vs. create+drop), which
+the sandboxed shell doesn't have. Since the old table had no real data on it,
+the fix was to delete the stale migration and regenerate clean rather than
+fight the prompt.
 
-Screenshots are welcome where one carries the point better than a sentence does.
-Commit the file to this repo and link it with a **relative** path, which is what
-makes it render on GitHub: `![alt text](docs/before.png)`. Images don't count
-towards the word count and don't replace the citation.
-
-## Before you ship
-
-`pnpm check:evidence` verifies that this comment is gone, that your citations
-resolve to real commits, that a crit week's reflection entry is in
-`reflections/`, and that your `CLAUDE.md` is there. It checks that your account
-is traceable, not that it is good: that is the marker's call.
-
-Images aren't checked: unlike a citation whose SHA doesn't resolve, a broken
-image is visible the moment this file is rendered on GitHub.
+Everything landed in one commit,
+[`a2d658c`](https://github.com/comp4020-agentic-coding-studio/comp4020-crit7-mayrhee218/commit/a2d658c),
+verified with `pnpm check` (83 tests: the availability edge cases, an HTTP-level
+check that a closed page shows its gating text and an open one doesn't, and
+the persisted-request round-trip over SSE) and then by hand against both
+`pnpm preview` and the deployed
+[Fly URL](https://comp4020-crit7-mayrhee218.fly.dev/) before calling it done.
